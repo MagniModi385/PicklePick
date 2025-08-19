@@ -156,24 +156,6 @@ const Profile = () => {
           </button>
         </form>
       </div>
-
-      <div style={styles.infoCard}>
-        <h3 style={styles.infoTitle}>Current Values:</h3>
-        <div style={styles.currentValues}>
-          <div style={styles.valueItem}>
-            <strong>First Name:</strong> {profile.first_name || 'Not set'}
-          </div>
-          <div style={styles.valueItem}>
-            <strong>Last Name:</strong> {profile.last_name || 'Not set'}
-          </div>
-          <div style={styles.valueItem}>
-            <strong>Skill Level:</strong> {profile.skill_level || 'Not set'}
-          </div>
-          <div style={styles.valueItem}>
-            <strong>Location:</strong> {profile.location || 'Not set'}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

@@ -5,9 +5,6 @@ from .mongo_connection import mongo_db
 import requests
 from bson import ObjectId
 from datetime import datetime
-from stream_chat import StreamChat
-from jose import jwt
-from django.conf import settings
 import hashlib
 
 def hash_text(text):

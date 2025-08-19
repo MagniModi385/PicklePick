@@ -1,4 +1,4 @@
-import React from 'react';
+import './index.css';
 import ReactDOM from 'react-dom/client';
 import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn, SignIn } from '@clerk/clerk-react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
