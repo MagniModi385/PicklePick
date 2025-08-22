@@ -93,9 +93,9 @@ export default function Navbar() {
         position: "relative",
         zIndex: 1
       }}>
+        {/* <NavLink to='/box-cricket' style={linkClass}>Box Cricket</NavLink> */}
         <NavLink to="/chats" style={linkClass}>Chats</NavLink>
         <NavLink to="/my-posts" style={linkClass}>My Posts</NavLink>
-        
         {/* Profile Dropdown */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
           <button 
@@ -169,6 +169,82 @@ export default function Navbar() {
                   </svg>
                   Profile
                 </span>
+              </NavLink>
+
+                 <NavLink 
+                to="/how-to-play" 
+                onClick={() => setIsDropdownOpen(false)}
+                style={{
+                  display: "block",
+                  padding: "12px 16px",
+                  textDecoration: "none",
+                  color: "#2d4a2f",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  transition: "all 0.2s ease",
+                  borderBottom: "1px solid rgba(0,0,0,0.05)"
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(74, 122, 74, 0.1)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 
+                        10 10 10-4.48 10-10S17.52 2 12 2zm-2 
+                        14.5v-9l6 4.5-6 4.5z"/>
+                    </svg>
+                    How to Play
+                  </span>
+
+              </NavLink>
+
+
+
+              <NavLink 
+                to="/contact" 
+                onClick={() => setIsDropdownOpen(false)}
+                style={{
+                  display: "block",
+                  padding: "12px 16px",
+                  textDecoration: "none",
+                  color: "#2d4a2f",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  transition: "all 0.2s ease",
+                  borderBottom: "1px solid rgba(0,0,0,0.05)"
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(74, 122, 74, 0.1)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                      <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 
+                        1.1.9 2 2 2h16c1.1 0 2-.9 
+                        2-2V6c0-1.1-.9-2-2-2zm0 
+                        4-8 5-8-5V6l8 5 8-5v2z" />
+                    </svg>
+                    Contact us
+              </span>
               </NavLink>
               
               <SignOutButton>

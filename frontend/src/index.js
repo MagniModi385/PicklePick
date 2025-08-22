@@ -7,6 +7,9 @@ import Profile from './components/Profile';
 import Navbar from './components/navbar';
 import MyPosts from './components/Myposts';
 import MyChats from './components/MyChats';
+import Contact from './components/Contact';
+import HowToPlay from './components/HowToPlay';
+import SeeSlots from './components/SeeSlots';
 // Placeholder pages (you'll create these shortly)
 function Chats() {
   return <div style={{ padding: 20 }}>Chats Page - coming soon...</div>;
@@ -23,6 +26,11 @@ const Root = () => (
             <Route path="/chats" element={<MyChats />} />
             <Route path="/my-posts" element={<MyPosts />}/>
             <Route path="/profile" element={<Profile />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/how-to-play" element={<HowToPlay />} />
+            <Route path="/see-slots" element={<SeeSlots />} />
+            {/* <Route path="/events" element={<Events />} /> */}
+            
           </Routes>
       </SignedIn>
       <SignedOut>

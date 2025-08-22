@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
-import ChatWindow from './ChatWindow'; // Import the ChatWindow component
+import ChatWindow from './ChatWindow';
 
 const MyPosts = () => {
   const { getToken } = useAuth();
@@ -80,10 +80,9 @@ const MyPosts = () => {
   const handleUpdateSuccess = () => {
     setShowUpdateModal(false);
     setEditingPost(null);
-    fetchMyPosts(); // Refresh posts
+    fetchMyPosts();
   };
 
-  // Chat functionality
   const handleSendMessage = (profile) => {
     setChatTarget({
       userId: profile.user_id,
@@ -97,68 +96,84 @@ const MyPosts = () => {
     setChatTarget(null);
   };
 
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.loadingContainer}>
+          <div style={styles.loadingSpinner}></div>
+          <p style={styles.loadingText}>Loading your posts...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.container}>
-      <h2 style={styles.header}>My Posts</h2>
-      
-      {loading && <div>Loading...</div>}
-      {error && <div style={styles.error}>{error}</div>}
-      {!loading && !error && posts.length === 0 && (
-        <div>No posts found. Create a post to see it here.</div>
-      )}
-      
-      {!loading && !error && posts.map(post => (
-        <div key={post._id} style={styles.postCard}>
-          <h3 style={styles.title}>{post.title}</h3>
-          <div>Players required: {post.players_needed}</div>
-          <div>Skill level: {post.skill_level}</div>
-          <div>
-            Game date: {new Date(post.game_datetime).toLocaleDateString()}
-            &nbsp;|&nbsp;
-            Game time: {new Date(post.game_datetime).toLocaleTimeString()}
-          </div>
-          <div>Description: {post.description}</div>
-          
-          <div style={styles.buttonRow}>
-            <button 
-              style={styles.updateBtn} 
-              onClick={() => handleUpdate(post)}
-            >
-              Update
-            </button>
-            <button 
-              style={styles.deleteBtn} 
-              onClick={() => handleDelete(post._id)}
-            >
-              Delete
-            </button>
-          </div>
-          
-          <div style={styles.interestedWrap}>
-            <strong>Interested people:</strong>
-            {post.interested_profiles && post.interested_profiles.length === 0 ? (
-              <div style={styles.noInterest}>None yet</div>
-            ) : (
-              <div style={styles.interestedList}>
-                {post.interested_profiles?.map(profile => (
-                  <div key={profile.user_id} style={styles.interestedCard}>
-                    <div><b>Name:</b> {profile.full_name}</div>
-                    <div><b>Skill Level:</b> {profile.skill_level || 'Not set'}</div>
-                    <button 
-                      style={styles.messageBtn}
-                      onClick={() => handleSendMessage(profile)}
-                    >
-                      Send Message
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+      {/* Header Section */}
+      <div style={styles.header}>
+        <div style={styles.headerContent}>
+          <h1 style={styles.title}>My Posts</h1>
+          <p style={styles.subtitle}>
+            Manage your game posts and connect with interested players
+          </p>
+        </div>
+        <div style={styles.statsContainer}>
+          <div style={styles.statCard}>
+            <div style={styles.statNumber}>{posts.length}</div>
+            <div style={styles.statLabel}>Active Posts</div>
           </div>
         </div>
-      ))}
+      </div>
 
-      {/* Update Post Modal */}
+      {/* Error State */}
+      {error && (
+        <div style={styles.errorContainer}>
+          <div style={styles.errorIcon}>❌</div>
+          <div style={styles.errorText}>{error}</div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!error && posts.length === 0 && (
+        <div style={styles.emptyState}>
+          <div style={styles.emptyIcon}>🏓</div>
+          <h3 style={styles.emptyTitle}>No Posts Yet</h3>
+          <p style={styles.emptyText}>
+            Create your first post to start organizing games with other players!
+          </p>
+          <button 
+            style={styles.createButton}
+            onClick={() => window.location.href = '/'}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#1b5e20';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#2e7d32';
+              e.target.style.transform = 'translateY(0px)';
+            }}
+          >
+            Find Venues & Create Post
+          </button>
+        </div>
+      )}
+
+      {/* Posts Grid */}
+      {!error && posts.length > 0 && (
+        <div style={styles.postsGrid}>
+          {posts.map(post => (
+            <PostCard 
+              key={post._id} 
+              post={post}
+              onUpdate={() => handleUpdate(post)}
+              onDelete={() => handleDelete(post._id)}
+              onSendMessage={handleSendMessage}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Update Modal - Original Version */}
       {showUpdateModal && editingPost && (
         <UpdatePostModal
           post={editingPost}
@@ -179,7 +194,146 @@ const MyPosts = () => {
   );
 };
 
-// UpdatePostModal component remains the same...
+const PostCard = ({ post, onUpdate, onDelete, onSendMessage }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div 
+      style={{
+        ...styles.postCard,
+        transform: isHovered ? 'translateY(-4px)' : 'translateY(0px)',
+        boxShadow: isHovered 
+          ? '0 12px 24px rgba(46, 125, 50, 0.2)' 
+          : '0 4px 12px rgba(46, 125, 50, 0.1)',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Post Header */}
+      <div style={styles.postHeader}>
+        <h3 style={styles.postTitle}>{post.title}</h3>
+        <div style={styles.skillBadge}>
+          {post.skill_level}
+        </div>
+      </div>
+
+      {/* Game Details */}
+      <div style={styles.gameDetails}>
+        <div style={styles.detailRow}>
+          <div style={styles.detailItem}>
+            <span style={styles.detailIcon}>👥</span>
+            <span style={styles.detailText}>{post.players_needed} players needed</span>
+          </div>
+        </div>
+        
+        <div style={styles.detailRow}>
+          <div style={styles.detailItem}>
+            <span style={styles.detailIcon}>📅</span>
+            <span style={styles.detailText}>
+              {new Date(post.game_datetime).toLocaleDateString()}
+            </span>
+          </div>
+          <div style={styles.detailItem}>
+            <span style={styles.detailIcon}>🕐</span>
+            <span style={styles.detailText}>
+              {new Date(post.game_datetime).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div style={styles.descriptionContainer}>
+        <p style={styles.description}>{post.description}</p>
+      </div>
+
+      {/* Action Buttons */}
+      <div style={styles.actionButtons}>
+        <button 
+          style={styles.updateButton}
+          onClick={onUpdate}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = '#e67e00';
+            e.target.style.transform = 'scale(1.02)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = '#ff9800';
+            e.target.style.transform = 'scale(1)';
+          }}
+        >
+          ✏️ Update
+        </button>
+        <button 
+          style={styles.deleteButton}
+          onClick={onDelete}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = '#c62828';
+            e.target.style.transform = 'scale(1.02)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = '#f44336';
+            e.target.style.transform = 'scale(1)';
+          }}
+        >
+          🗑️ Delete
+        </button>
+      </div>
+
+      {/* Interested Players Section */}
+      <div style={styles.interestedSection}>
+        <div style={styles.interestedHeader}>
+          <h4 style={styles.interestedTitle}>
+            👥 Interested Players ({post.interested_profiles?.length || 0})
+          </h4>
+        </div>
+        
+        {(!post.interested_profiles || post.interested_profiles.length === 0) ? (
+          <div style={styles.noInterested}>
+            <span style={styles.noInterestedIcon}>😴</span>
+            <span>No one has shown interest yet</span>
+          </div>
+        ) : (
+          <div style={styles.interestedGrid} className="interested-grid">
+            {post.interested_profiles.map(profile => (
+              <div key={profile.user_id} style={styles.interestedCard}>
+                <div style={styles.playerInfo}>
+                  <div style={styles.playerAvatar}>
+                    {profile.full_name ? profile.full_name[0].toUpperCase() : 'P'}
+                  </div>
+                  <div style={styles.playerDetails}>
+                    <div style={styles.playerName}>{profile.full_name || 'Anonymous'}</div>
+                    <div style={styles.playerSkill}>
+                      {profile.skill_level || 'Not set'}
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  style={styles.messageButton}
+                  onClick={() => onSendMessage(profile)}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#1b5e20';
+                    e.target.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#2e7d32';
+                    e.target.style.transform = 'scale(1)';
+                  }}
+                >
+                  💬
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Original Update Modal (with scrolling)
 const UpdatePostModal = ({ post, onClose, onUpdateSuccess }) => {
   const { getToken } = useAuth();
   const [formData, setFormData] = useState({
@@ -247,6 +401,7 @@ const UpdatePostModal = ({ post, onClose, onUpdateSuccess }) => {
               <option value="Beginner">Beginner</option>
               <option value="Intermediate">Intermediate</option>
               <option value="Advanced">Advanced</option>
+              <option value="Competitive">Competitive</option>
             </select>
           </div>
           
@@ -298,63 +453,399 @@ const UpdatePostModal = ({ post, onClose, onUpdateSuccess }) => {
   );
 };
 
-// Styles remain the same...
 const styles = {
-  container: { padding: 24, maxWidth: 800, margin: '0 auto' },
-  header: { fontSize: 30, marginBottom: 32 },
+  container: {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #f0f8f0 0%, #e8f5e8 50%, #f0f8f0 100%)',
+    padding: '20px',
+  },
+
+  loadingContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '50vh',
+  },
+
+  loadingSpinner: {
+    width: '50px',
+    height: '50px',
+    border: '4px solid #e8f5e8',
+    borderTop: '4px solid #2e7d32',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    marginBottom: '20px',
+  },
+
+  loadingText: {
+    fontSize: '18px',
+    color: '#5a7c5a',
+  },
+
+  header: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: '20px',
+    padding: '40px',
+    marginBottom: '30px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+    border: '1px solid #e8f5e8',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    maxWidth: '1200px',
+    margin: '0 auto 30px auto',
+  },
+
+  headerContent: {
+    flex: 1,
+  },
+
+  title: {
+    fontSize: '42px',
+    fontWeight: 'bold',
+    color: '#2d4a2f',
+    marginBottom: '12px',
+    textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  },
+
+  subtitle: {
+    fontSize: '18px',
+    color: '#5a7c5a',
+    margin: 0,
+  },
+
+  statsContainer: {
+    display: 'flex',
+    gap: '20px',
+  },
+
+  statCard: {
+    textAlign: 'center',
+    padding: '20px',
+    backgroundColor: '#f1f8e9',
+    borderRadius: '16px',
+    border: '1px solid #e8f5e8',
+    minWidth: '120px',
+  },
+
+  statNumber: {
+    fontSize: '32px',
+    fontWeight: 'bold',
+    color: '#2e7d32',
+    marginBottom: '8px',
+  },
+
+  statLabel: {
+    fontSize: '14px',
+    color: '#5a7c5a',
+    fontWeight: '500',
+  },
+
+  errorContainer: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: '16px',
+    padding: '40px',
+    textAlign: 'center',
+    maxWidth: '600px',
+    margin: '0 auto',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+    border: '1px solid #ffcdd2',
+  },
+
+  errorIcon: {
+    fontSize: '48px',
+    marginBottom: '16px',
+  },
+
+  errorText: {
+    fontSize: '18px',
+    color: '#c62828',
+    fontWeight: '500',
+  },
+
+  emptyState: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: '20px',
+    padding: '60px 40px',
+    textAlign: 'center',
+    maxWidth: '600px',
+    margin: '0 auto',
+    boxShadow: '0 12px 40px rgba(0,0,0,0.1)',
+    border: '1px solid #e8f5e8',
+  },
+
+  emptyIcon: {
+    fontSize: '80px',
+    marginBottom: '24px',
+  },
+
+  emptyTitle: {
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#2d4a2f',
+    marginBottom: '16px',
+  },
+
+  emptyText: {
+    fontSize: '18px',
+    color: '#5a7c5a',
+    marginBottom: '32px',
+    lineHeight: '1.6',
+  },
+
+  createButton: {
+    backgroundColor: '#2e7d32',
+    color: 'white',
+    border: 'none',
+    padding: '16px 32px',
+    borderRadius: '12px',
+    fontSize: '18px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)',
+  },
+
+  postsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', // Slightly bigger from 320px
+    gap: '22px', // Slightly bigger from 20px
+    maxWidth: '1300px', // Slightly bigger from 1200px
+    margin: '0 auto',
+    padding: '0 20px',
+  },
+
+  // Slightly bigger post card
   postCard: {
-    background: "#f8f9fa",
-    padding: 18,
-    borderRadius: 10,
-    marginBottom: 24,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: '14px', // Slightly bigger from 12px
+    padding: '18px', // Slightly bigger from 16px
+    boxShadow: '0 4px 12px rgba(46, 125, 50, 0.1)',
+    border: '1px solid #e8f5e8',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    maxHeight: '380px', // Slightly bigger from 350px
+    width: '100%',
+    maxWidth: '420px', // Slightly bigger from 380px
+    justifySelf: 'center',
   },
-  title: { fontSize: 22, marginBottom: 10 },
-  buttonRow: { display: "flex", gap: 12, marginTop: 16 },
-  updateBtn: { 
-    background: "#ffc107", 
-    padding: "10px 20px", 
-    borderRadius: 6, 
-    border: 'none', 
-    cursor: "pointer",
-    fontSize: "14px"
+
+  postHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '14px', // Slightly bigger from 12px
   },
-  deleteBtn: { 
-    background: "#dc3545", 
-    color: "white", 
-    padding: "10px 20px", 
-    borderRadius: 6, 
-    border: 'none', 
-    cursor: "pointer",
-    fontSize: "14px"
+
+  postTitle: {
+    fontSize: '19px', // Slightly bigger from 18px
+    fontWeight: 'bold',
+    color: '#2d4a2f',
+    margin: 0,
+    flex: 1,
+    paddingRight: '14px', // Slightly bigger from 12px
   },
-  interestedWrap: { marginTop: 18, marginBottom: 8 },
-  noInterest: { color: "#888", fontStyle: "italic", marginLeft: 8 },
-  interestedList: { display: "flex", flexDirection: "row", gap: 18, overflowX: "auto" },
+
+  skillBadge: {
+    backgroundColor: '#2e7d32',
+    color: 'white',
+    padding: '5px 14px', // Slightly bigger from 4px 12px
+    borderRadius: '18px', // Slightly bigger from 16px
+    fontSize: '11px',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+
+  gameDetails: {
+    marginBottom: '14px', // Slightly bigger from 12px
+  },
+
+  detailRow: {
+    display: 'flex',
+    gap: '14px', // Slightly bigger from 12px
+    marginBottom: '9px', // Slightly bigger from 8px
+  },
+
+  detailItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '7px', // Slightly bigger from 6px
+    flex: 1,
+  },
+
+  detailIcon: {
+    fontSize: '15px', // Slightly bigger from 14px
+  },
+
+  detailText: {
+    fontSize: '13px',
+    color: '#5a7c5a',
+    fontWeight: '500',
+  },
+
+  descriptionContainer: {
+    backgroundColor: '#f8fffe',
+    border: '1px solid #e8f5e8',
+    borderRadius: '9px', // Slightly bigger from 8px
+    padding: '11px', // Slightly bigger from 10px
+    marginBottom: '14px', // Slightly bigger from 12px
+  },
+
+  description: {
+    fontSize: '13px',
+    color: '#424242',
+    lineHeight: '1.3',
+    margin: 0,
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  },
+
+  actionButtons: {
+    display: 'flex',
+    gap: '9px', // Slightly bigger from 8px
+    marginBottom: '18px', // Slightly bigger from 16px
+  },
+
+  updateButton: {
+    backgroundColor: '#ff9800',
+    color: 'white',
+    border: 'none',
+    padding: '9px 14px', // Slightly bigger from 8px 12px
+    borderRadius: '7px', // Slightly bigger from 6px
+    fontSize: '12px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    minWidth: '75px', // Slightly bigger from 70px
+    textAlign: 'center',
+  },
+
+  deleteButton: {
+    backgroundColor: '#f44336',
+    color: 'white',
+    border: 'none',
+    padding: '9px 14px', // Slightly bigger from 8px 12px
+    borderRadius: '7px', // Slightly bigger from 6px
+    fontSize: '12px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    minWidth: '75px', // Slightly bigger from 70px
+    textAlign: 'center',
+  },
+
+  interestedSection: {
+    borderTop: '1px solid #f0f0f0',
+    paddingTop: '14px', // Slightly bigger from 12px
+  },
+
+  interestedHeader: {
+    marginBottom: '11px', // Slightly bigger from 10px
+  },
+
+  interestedTitle: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#2d4a2f',
+    margin: 0,
+  },
+
+  noInterested: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '7px', // Slightly bigger from 6px
+    padding: '14px', // Slightly bigger from 12px
+    backgroundColor: '#f8f9fa',
+    borderRadius: '9px', // Slightly bigger from 8px
+    color: '#5a7c5a',
+    fontSize: '12px',
+    fontStyle: 'italic',
+    justifyContent: 'center',
+  },
+
+  noInterestedIcon: {
+    fontSize: '16px',
+  },
+
+  interestedGrid: {
+    display: 'flex',
+    gap: '11px', // Slightly bigger from 10px
+    overflowX: 'auto',
+    paddingBottom: '7px', // Slightly bigger from 6px
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(46, 125, 50, 0.3) transparent',
+  },
+
   interestedCard: {
-    background: "#ececec",
-    padding: "10px 16px",
-    borderRadius: 6,
-    minWidth: 160,
-    flex: "0 0 auto",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    marginBottom: 8,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '7px', // Slightly bigger from 6px
+    padding: '11px', // Slightly bigger from 10px
+    backgroundColor: '#f8fffe',
+    borderRadius: '9px', // Slightly bigger from 8px
+    border: '1px solid #e8f5e8',
+    minWidth: '110px', // Slightly bigger from 100px
+    maxWidth: '110px', // Slightly bigger from 100px
+    flexShrink: 0,
   },
-  messageBtn: { 
-    background: "#007bff", 
-    color: "white", 
-    padding: "6px 12px", 
-    borderRadius: 4, 
-    border: 'none', 
-    marginTop: 5,
-    fontSize: "12px",
-    cursor: "pointer",
+
+  playerInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '7px', // Slightly bigger from 6px
+    textAlign: 'center',
+    width: '100%',
   },
-  error: { color: "#dc3545", marginBottom: 20 },
-  
-  // Modal styles
+
+  playerAvatar: {
+    width: '32px', // Slightly bigger from 30px
+    height: '32px', // Slightly bigger from 30px
+    borderRadius: '50%',
+    backgroundColor: '#2e7d32',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '13px', // Slightly bigger from 12px
+    fontWeight: 'bold',
+  },
+
+  playerDetails: {
+    width: '100%',
+  },
+
+  playerName: {
+    fontSize: '11px',
+    fontWeight: '600',
+    color: '#2d4a2f',
+    marginBottom: '2px',
+    wordWrap: 'break-word',
+    lineHeight: '1.2',
+  },
+
+  playerSkill: {
+    fontSize: '9px',
+    color: '#5a7c5a',
+  },
+
+  messageButton: {
+    backgroundColor: '#2e7d32',
+    color: 'white',
+    border: 'none',
+    padding: '5px 9px', // Slightly bigger from 4px 8px
+    borderRadius: '5px', // Slightly bigger from 4px
+    fontSize: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    width: '100%',
+  },
+
+  // Original Modal Styles (with scrolling)
   modalOverlay: {
     position: 'fixed',
     top: 0,
@@ -367,6 +858,7 @@ const styles = {
     alignItems: 'center',
     zIndex: 1000,
   },
+
   modalContent: {
     backgroundColor: 'white',
     borderRadius: '8px',
@@ -376,20 +868,24 @@ const styles = {
     maxHeight: '80vh',
     overflowY: 'auto',
   },
+
   modalTitle: {
     marginBottom: '20px',
     color: '#333',
     fontSize: '20px',
   },
+
   formGroup: {
     marginBottom: '16px',
   },
+
   label: {
     display: 'block',
     marginBottom: '4px',
     fontWeight: '500',
     color: '#333',
   },
+
   input: {
     width: '100%',
     padding: '8px',
@@ -398,6 +894,7 @@ const styles = {
     fontSize: '14px',
     boxSizing: 'border-box',
   },
+
   select: {
     width: '100%',
     padding: '8px',
@@ -406,6 +903,7 @@ const styles = {
     fontSize: '14px',
     boxSizing: 'border-box',
   },
+
   textarea: {
     width: '100%',
     padding: '8px',
@@ -415,12 +913,14 @@ const styles = {
     resize: 'vertical',
     boxSizing: 'border-box',
   },
+
   modalButtons: {
     display: 'flex',
     gap: '12px',
     justifyContent: 'flex-end',
     marginTop: '20px',
   },
+
   cancelBtn: {
     padding: '10px 20px',
     backgroundColor: '#6c757d',
@@ -429,6 +929,7 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
   },
+
   submitBtn: {
     padding: '10px 20px',
     backgroundColor: '#28a745',
@@ -438,5 +939,58 @@ const styles = {
     cursor: 'pointer',
   },
 };
+
+// Add CSS animations and custom scrollbar
+const addGlobalStyles = () => {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      border-color: #6fa85a !important;
+      box-shadow: 0 0 0 3px rgba(111,168,90,0.2) !important;
+    }
+
+    /* Custom scrollbar for interested players section */
+    .interested-grid::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    .interested-grid::-webkit-scrollbar-track {
+      background: rgba(232, 245, 232, 0.5);
+      border-radius: 2px;
+    }
+    
+    .interested-grid::-webkit-scrollbar-thumb {
+      background: rgba(46, 125, 50, 0.4);
+      border-radius: 2px;
+    }
+    
+    .interested-grid::-webkit-scrollbar-thumb:hover {
+      background: rgba(46, 125, 50, 0.6);
+    }
+
+    @media (max-width: 768px) {
+      .posts-grid {
+        grid-template-columns: 1fr !important;
+        padding: 0 10px !important;
+      }
+      
+      .header {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 20px !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+if (typeof window !== 'undefined') {
+  addGlobalStyles();
+}
 
 export default MyPosts;

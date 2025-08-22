@@ -6,12 +6,14 @@ import requests
 from bson import ObjectId
 from datetime import datetime
 import hashlib
+from jose import jwt
 
 def hash_text(text):
     """Hash any text for privacy"""
     return hashlib.sha256(text.encode()).hexdigest()[:32]
 
 CLERK_API_KEY = config('CLERK_API_KEY')
+
 def verify_clerk_token(token):
     """Verify Clerk JWT and fetch Clerk user info."""
     url = "https://api.clerk.com/v1/me"
@@ -20,11 +22,6 @@ def verify_clerk_token(token):
     if r.status_code == 200:
         return r.json()
     return None
-
-
-from jose import jwt
-import requests
-from rest_framework.response import Response
 
 def get_authenticated_user(request):
     auth_header = request.headers.get('Authorization')
@@ -40,7 +37,6 @@ def get_authenticated_user(request):
     except Exception as e:
         print(f"Error fetching JWKS: {e}")
         return None, Response({'error': 'Failed to fetch JWKS keys'}, status=500)
-    
     try:
         payload = jwt.decode(
             token,
@@ -110,7 +106,7 @@ def ensure_user_profile(mongo_db, user_data):
             'last_name': user_data.get('last_name', ''),
             'location': '',
             'skill_level': '',
-            'created_at': datetime.utcnow(),
+            'created_at': datetime.now(),
         }
         profiles.insert_one(new_profile)
         print(f"Created new profile with email: {user_data.get('email')}")
@@ -245,7 +241,7 @@ def list_posts(request):
     except Exception:
         return Response({"error": "Invalid venue_id"}, status=400)
 
-    now = datetime.utcnow()
+    now = datetime.now()
     posts_cursor = mongo_db['posts'].find({
         'venue_id': venue_obj_id,
         'game_datetime': {'$gte': now}
@@ -256,7 +252,6 @@ def list_posts(request):
         p['_id'] = str(p['_id'])
         p['venue_id'] = str(p['venue_id'])
         p['interested_count'] = len(p.get('interested_users', []))
-        # Convert datetime fields to ISO format
         p['game_datetime'] = p['game_datetime'].isoformat()
         p['created_at'] = p['created_at'].isoformat()
         posts.append(p)
@@ -526,3 +521,37 @@ def get_conversations(request):
     conversations.sort(key=lambda x: x['last_message_time'], reverse=True)
     
     return Response(conversations)
+
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
+from scraper import scrape_venue_slots
+import json
+
+@csrf_exempt
+@api_view(['POST'])
+def scrape_slots(request):
+    """API endpoint to scrape venue slots - no authentication required"""
+    try:
+        data = json.loads(request.body)
+        venue_url = data.get('venue_url')
+        venue_name = data.get('venue_name', 'Unknown Venue')
+        
+        if not venue_url:
+            return JsonResponse({'error': 'venue_url is required'}, status=400)
+        
+        print(f"🎯 API Request: Scraping {venue_name}")
+        
+        # Run the headless scraper
+        result = scrape_venue_slots(venue_url, venue_name)
+        
+        if result.get('status') == 'error':
+            return JsonResponse(result, status=500)
+        
+        return JsonResponse(result)
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'error': str(e)
+        }, status=500)

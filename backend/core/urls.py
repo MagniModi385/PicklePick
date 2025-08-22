@@ -4,6 +4,7 @@ from .views import (
     get_conversations,
     health_check,
     get_profile,
+    scrape_slots,
     send_message,
     update_profile,
     venue_list,
@@ -29,4 +30,5 @@ urlpatterns = [
     path('messages/send/', send_message),
     path('messages/<str:other_user_id>/', get_conversation),
     path('conversations/', get_conversations),
+    path('scrape-slots/', scrape_slots),
 ]

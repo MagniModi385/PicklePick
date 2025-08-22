@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import ChatWindow from './components/ChatWindow';
-
+import { useNavigate } from 'react-router-dom';
 function App() {
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
@@ -179,6 +179,7 @@ const VenueCard = ({ venue }) => {
   const [posts, setPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPosts();
@@ -205,7 +206,15 @@ const VenueCard = ({ venue }) => {
       setPostsLoading(false);
     }
   };
-
+  const handleSeeSlots = () => {
+    navigate('/see-slots', { 
+      state: { 
+        venueUrl: venue.hudle_url,
+        venueName: venue.name,
+        venueId: venue.id 
+      } 
+    });
+  };
   return (
     <div style={styles.venueCard}>
       <h2 style={styles.venueName}>{venue.name}</h2>
@@ -225,7 +234,9 @@ const VenueCard = ({ venue }) => {
         <div style={styles.venueInfo}>
           <p style={styles.location}>{venue.location}</p>
           <p style={styles.description}>{venue.description}</p>
-          
+          <p style={styles.description}>Book Slots through Hudle :
+          <a href={venue.hudle_url} target='blank'>{venue.name}</a>
+          </p>
           <div style={styles.buttonContainer}>
             <button 
               style={styles.createPostBtn}
@@ -233,7 +244,20 @@ const VenueCard = ({ venue }) => {
             >
               Create Post
             </button>
-            <button style={styles.seeSlotsBtn}>See Slots</button>
+            <button 
+          style={styles.seeSlotsBtn}
+          onClick={handleSeeSlots}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = '#1b5e20';
+            e.target.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = '#2e7d32';
+            e.target.style.transform = 'translateY(0px)';
+          }}
+        >
+          🔍 See Slots
+        </button>
           </div>
         </div>
       </div>
