@@ -14,11 +14,11 @@ venues_collection = db['venues']
 # List of venue dictionaries you want to insert
 venues = [
     {
-        "name": "Vinayak Sports Arena",
-        "image_url": "https://media.hudle.in/venues/352903c9-fc6e-4a39-ae33-aba0028012fa/photo/18bc531e385b268ff5f21a65ac6d478677768509",
-        "hudle_url": "https://hudle.in/venues/dinkers-pickleball-academy-club/167103",
-        "location": "Shilaj, Ahmedabad",
-        "description": "Contact Venue : 83473 88882",
+        "name": "",
+        "image_url": "",
+        "hudle_url": "",
+        "location": "",
+        "description": "Contact Venue : ",
         "created_at": datetime.now()
     }
 ]
