@@ -66,7 +66,7 @@ Tournament Management: Organize official pickleball competitions.
 
 Mobile App: Native app for iOS and Android for notifications and easier access.
 
-Contribution
+Contribution:
 Contributions are welcome! Please open issues or submit pull requests with meaningful changes or features.
 
 License
