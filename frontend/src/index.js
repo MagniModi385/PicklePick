@@ -10,11 +10,11 @@ import MyChats from './components/MyChats';
 import Contact from './components/Contact';
 import HowToPlay from './components/HowToPlay';
 import SeeSlots from './components/SeeSlots';
-// Placeholder pages (you'll create these shortly)
+
 function Chats() {
   return <div style={{ padding: 20 }}>Chats Page - coming soon...</div>;
 }
-const clerkPubKey = 'pk_test_cmVzdGVkLW95c3Rlci04MS5jbGVyay5hY2NvdW50cy5kZXYk';
+const clerkPubKey = '';
 
 const Root = () => (
   <ClerkProvider publishableKey={clerkPubKey}>
